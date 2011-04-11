@@ -10,6 +10,9 @@ class Solr(object):
         else:
             self.app = None
 
+    def __getattr__(self, name):
+        return getattr(self.connection, name)
+
     def init_app(self, app):
         self.app = app
         self.app.config.setdefault('SOLR_URL', 'http://localhost:8983/solr')
