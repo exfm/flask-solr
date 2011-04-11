@@ -1,5 +1,16 @@
-from flask import _request_ctx_stack
 import pysolr
+
+
+# json logic from pysolr, to expose pysolr.Solr constructor API in Flask-Solr.
+try:
+    # For Python < 2.6 or people using a newer version of simplejson
+    import simplejson as json
+except ImportError:
+    # For Python >= 2.6
+    import json
+
+
+EXTENSION_KEY = 'solr'
 
 
 class Solr(object):
@@ -16,23 +27,30 @@ class Solr(object):
     def init_app(self, app):
         self.app = app
         self.app.config.setdefault('SOLR_URL', 'http://localhost:8983/solr')
-        self.app.after_request(self.after_request)
-        self.app.before_request(self.before_request)
+        self.app.config.setdefault('SOLR_DECODER', json.JSONDecoder())
+        self.app.config.setdefault('SOLR_TIMEOUT', 60)
+        if not hasattr(app, 'extensions'):
+            app.extensions = {}
+        app.extensions[EXTENSION_KEY] = self.connect()
 
     def connect(self):
-        return pysolr.Solr(self.app.config['SOLR_URL'])
+        url = self.app.config['SOLR_URL']
+        decoder = self.app.config['SOLR_DECODER']
+        timeout = self.app.config['SOLR_TIMEOUT']
+        return pysolr.Solr(url, decoder=decoder, timeout=timeout)
 
-    def before_request(self):
-        ctx = _request_ctx_stack.top
-        ctx.solr = self.connect()
-
-    def after_request(self, response):
-        ctx = _request_ctx_stack.top
-        del ctx.solr
-        return response
+    def raise_init_error(self, message=None):
+        msg = 'Flask-Solr instance not properly initialized'
+        if message is not None:
+            msg += ': ' + message
+        raise RuntimeError(msg)
 
     @property
     def connection(self):
-        ctx = _request_ctx_stack.top
-        if ctx is not None:
-            return ctx.solr
+        if self.app is None:
+            self.raise_init_error('no app given -- call init_app(app) first.')
+        if not hasattr(self.app, 'extensions'):
+            self.raise_init_error('app does not have extensions namespace.')
+        if EXTENSION_KEY not in self.app.extensions:
+            self.raise_init_error('not in app extensions dict.')
+        return self.app.extensions[EXTENSION_KEY]
