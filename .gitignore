@@ -1,0 +1,12 @@
+.#*
+*~
+\#*
+build/
+dist/
+docs/_build
+.DS_Store
+*.egg
+*.egg-info/
+__MACOSX
+*.py[co]
+*.sw[op]
