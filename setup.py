@@ -10,7 +10,7 @@ from setuptools import setup
 
 setup(
     name='Flask-Solr',
-    version='0.0-dev',
+    version='0.1',
     license='BSD',
     author='WillowTree Apps',
     author_email='ron.duplain@willowtreeapps.com',
