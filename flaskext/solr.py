@@ -18,7 +18,7 @@ class Solr(object):
         self._connection = None
         self.app = app
         self.app.config.setdefault('SOLR_URL', 'http://localhost:8983/solr')
-        self.app.config.setdefault('SOLR_TIMEOUT', 60)
+        self.app.config.setdefault('SOLR_TIMEOUT', 5)
         if not hasattr(app, 'extensions'):
             app.extensions = {}
         app.extensions[EXTENSION_KEY] = self
